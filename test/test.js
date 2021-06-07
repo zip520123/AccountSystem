@@ -66,8 +66,8 @@ describe('Post message', ()=> {
             done()
         })
     })
-
-    it('John can post msg with its token', (done)=>{
+    
+    it('John can post msg with its token', (done) => {
         const headers = {
             Authorization: `Bearer ${token}`
         }
@@ -79,9 +79,22 @@ describe('Post message', ()=> {
         .catch(err =>{
             done(err)
         })
+
     })
 
 
+    it('John can not post msg with wrong token', (done) => {
+        const headers = {
+            Authorization: `Bearer wrongToken`
+        }
+        axios.post(postMsgUrl, {msg: "hello"}, { headers: headers } )
+        .then(res => {
+            done(new Error('Cannot post msg with wrong'))
+        })
+        .catch(err =>{
+            done()
+        })
+    })
 })
 
 

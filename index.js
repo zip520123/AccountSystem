@@ -47,7 +47,11 @@ const verifyToken = (req, res, next) => {
 }
 
 app.post('/api/post', verifyToken ,(req, res) => {
-
+    jwt.verify(req.token, "secretKey", (err, authData)=> {
+        if(err) {
+            res.sendStatus(403)
+        }
+    })
     res.json({message: 'Posts success'})
 })
 
