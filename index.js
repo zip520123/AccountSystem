@@ -16,7 +16,7 @@ app.get('/users', (req, res) => {
     res.json(users)
 })
 app.post('/api/login', async (req, res, next) => {
-    const user = users.find(user => user.email = req.body.email)
+    const user = users.find(user => user.email == req.body.email)
     if (user == null) {
         return res.status(400).send('Cannot find user')
     }

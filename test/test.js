@@ -19,6 +19,7 @@ describe('user can register', () => {
             return axios.post(loginUrl, { email: email, password: passwdhash })
         })
         .then(res => {
+            console.log(res)
             done()
         })
         .catch(err => {
@@ -37,7 +38,7 @@ describe('login', () => {
         axios.post(retisterUrl, { email: email, password: passwdhash})
         .then(res => {
             const loginUrl = host + ':' + port + '/api/login'
-            return axios.post(loginUrl, { email: email, passwdhash: passwdhash})
+            return axios.post(loginUrl, { email: email, password: passwdhash})
         }).then(res => {
             done()
         }).catch(err =>{
@@ -51,7 +52,7 @@ describe('login', () => {
         const pwd = "johnsonGG123"
         const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
         
-        axios.post(loginUrl, { email: email, passwdhash: passwdhash})
+        axios.post(loginUrl, { email: email, password: passwdhash})
         .then(res => {
             assert.notStrictEqual(res.data.token, null, "token must not be nil")
             done()
@@ -65,7 +66,7 @@ describe('login', () => {
         const email = 'Nini@gmail.com'
         const pwd = 'NiniSucksGG'
         const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
-        axios.post(loginUrl, { email: email, passwdhash: passwdhash})
+        axios.post(loginUrl, { email: email, password: passwdhash})
         .then(res => {
             done(new Error('NiNi login success'))
         })

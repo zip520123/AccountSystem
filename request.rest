@@ -17,3 +17,21 @@ Content-Type: application/json
     "email": "Kyle@example.com",
     "password": "password2"
 }
+
+####
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+    "email": "nini@gmail.com",
+    "password": "password2"
+}
+
+####
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+    "email": "Kyle@example.com",
+    "password": "password2"
+}
