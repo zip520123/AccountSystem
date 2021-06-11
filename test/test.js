@@ -6,29 +6,52 @@ require('dotenv').config()
 const host = process.env.HOST
 const port = process.env.PORT
 
-describe('login', () => {
-    const url = host + ':' + port + '/api/login'
-    
-    it('John can login', (done)=> {
-        const email = 'john@example.com'
-        const pwd = "johnsonGG123"
+describe('user can register', () => {
+    const retisterUrl = host + ':' + port + '/api/register'
+    it('Alice can register and login', (done)=> {
+        const email = 'alice@example.com'
+        const pwd = "aliceGG123"
         const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
 
-        axios.post(url, { email: email, passwdhash: passwdhash})
+        axios.post(retisterUrl, { email: email, password: passwdhash})
+        .then(res => {
+            const loginUrl = host + ':' + port + '/api/login'
+            return axios.post(loginUrl, { email: email, password: passwdhash })
+        })
         .then(res => {
             done()
         })
-        .catch(err =>{
+        .catch(err => {
             done(err)
         })
     })
+})
+
+describe('login', () => {
+    const loginUrl = host + ':' + port + '/api/login'
+    describe('John can login', () => {
+        const email = 'john@example.com'
+        const pwd = "johnsonGG123"
+        const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
+        const retisterUrl = host + ':' + port + '/api/register'
+        axios.post(retisterUrl, { email: email, password: passwdhash})
+        .then(res => {
+            const loginUrl = host + ':' + port + '/api/login'
+            return axios.post(loginUrl, { email: email, passwdhash: passwdhash})
+        }).then(res => {
+            done()
+        }).catch(err =>{
+            done(err)
+        })
+    })
+    
 
     it('John can login and get jwt token', (done)=> {
         const email = 'john@example.com'
         const pwd = "johnsonGG123"
         const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
         
-        axios.post(url, { email: email, passwdhash: passwdhash})
+        axios.post(loginUrl, { email: email, passwdhash: passwdhash})
         .then(res => {
             assert.notStrictEqual(res.data.token, null, "token must not be nil")
             done()
@@ -42,7 +65,7 @@ describe('login', () => {
         const email = 'Nini@gmail.com'
         const pwd = 'NiniSucksGG'
         const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
-        axios.post(url, { email: email, passwdhash: passwdhash})
+        axios.post(loginUrl, { email: email, passwdhash: passwdhash})
         .then(res => {
             done(new Error('NiNi login success'))
         })
@@ -94,23 +117,5 @@ describe('Post message', ()=> {
         .catch(err =>{
             done()
         })
-    })
-})
-
-
-describe('testApi', ()=> {
-    it('testApi', (done)=> {
-        var url = host + ':' + port + '/api'
-        axios
-            .get(url)
-            .then(res => {
-                // console.log(`statusCode: ${res.status}`)
-                // console.log(`${res.data.message}`)
-                done()
-            })
-            .catch(error => {
-                // console.error(error)
-                done(error)
-            })
     })
 })

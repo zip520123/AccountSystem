@@ -1,8 +1,9 @@
-const e = require('express');
 const express = require('express')
 const jwt = require('jsonwebtoken')
+const jwtSecretKey = "secretKey"
 const app = express()
 const PORT = process.env.PORT || 3000;
+const bcrypt = require('bcrypt')
 app.use(express.json())
 app.get('/api', (req, res) => {
     res.json({
@@ -10,29 +11,30 @@ app.get('/api', (req, res) => {
     })
 })
 
-const db = {}
-db.user1 = {
-    id: 1,
-    name: 'John',
-    email: 'john@example.com',  
-    passwdhash: '8gNurGuwDpJOPrW8kEy/HB3CK1k57YdpTQNahSvim2Q='
-}   
-
-app.post('/api/login',  (req, res, next) => {
-    let john = db.user1
-    console.log(john, req.body)
-    if (req.body.email === john.email && req.body.passwdhash === john.passwdhash) {
-        jwt.sign({user: john}, "secretKey", (err, token) => {
-            if (err) {
-                next(err)
-            } else {
-                res.json({token})
-            }
-        })
-    } else {
-        next(new Error('login fail'))
+const users = []
+app.get('/users', (req, res) => {
+    res.json(users)
+})
+app.post('/api/login', async (req, res, next) => {
+    const user = users.find(user => user.email = req.body.email)
+    if (user == null) {
+        return res.status(400).send('Cannot find user')
     }
-
+    try {
+        if (await bcrypt.compare(req.body.password, user.password)) {
+            jwt.sign({user: user}, jwtSecretKey, (err, token) => {
+                if (err) {
+                    next(err)
+                } else {
+                    res.json({token})
+                }
+            })
+        } else {
+            next(new Error('login fail'))
+        }
+    } catch {
+        res.status(500).send()
+    }
 })
 
 const verifyToken = (req, res, next) => {
@@ -47,15 +49,27 @@ const verifyToken = (req, res, next) => {
 }
 
 app.post('/api/post', verifyToken ,(req, res) => {
-    jwt.verify(req.token, "secretKey", (err, authData)=> {
+    jwt.verify(req.token, jwtSecretKey, (err, authData)=> {
         if(err) {
             res.sendStatus(403)
+        } else {
+            res.json({message: 'Posts success', authData})
         }
     })
-    res.json({message: 'Posts success'})
 })
 
-
+app.post('/api/register', async (req, res) => {
+    try {
+        const salt = await bcrypt.genSalt()
+        const hashedPassword = await bcrypt.hash(req.body.password, salt)
+        const user = {email: req.body.email, password: hashedPassword}
+        console.log(user)
+        users.push(user)
+        res.sendStatus(201)
+    } catch {
+        res.sendStatus(500)
+    }
+})
 
 app.listen(PORT, (req, res) => {
     console.log(`server start on ${PORT}`)
