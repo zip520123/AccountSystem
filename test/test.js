@@ -6,7 +6,7 @@ require('dotenv').config()
 const host = process.env.HOST
 const port = process.env.PORT
 
-describe('user can register', () => {
+describe('user can register and delete account', () => {
     const retisterUrl = host + ':' + port + '/api/register'
     it('Alice can register and login', (done)=> {
         const email = 'alice@example.com'
@@ -19,8 +19,40 @@ describe('user can register', () => {
             return axios.post(loginUrl, { email: email, password: passwdhash })
         })
         .then(res => {
-            console.log(res)
             done()
+        })
+        .catch(err => {
+            done(err)
+        })
+    })
+
+    it('Bob can register, login and delete account with token', (done) => {
+        const email = 'bob@example.com'
+        const pwd = 'bob123'
+        const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
+        axios.post(retisterUrl, { email: email, password: passwdhash})
+        .then(res => {
+            const loginUrl = host + ':' + port + '/api/login'
+            return axios.post(loginUrl, { email: email, password: passwdhash })
+        })
+        .then(res => {
+            return res.data.token
+        })
+        .then(token => {
+            const headers = {
+                Authorization: `Bearer ${token}`
+            }
+            return axios.delete(retisterUrl, {headers: headers})
+        })
+        .then(res => {
+            const loginUrl = host + ':' + port + '/api/login'
+            axios.post(loginUrl, { email: email, password: passwdhash })
+            .then(res => {
+                done(new Error('bob login success after delete account'))
+            })
+            .catch(err => {
+                done()
+            })
         })
         .catch(err => {
             done(err)
@@ -75,6 +107,8 @@ describe('login', () => {
         })
     })
 })
+
+
 
 describe('Post message', ()=> {
     

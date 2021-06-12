@@ -11,12 +11,12 @@ app.get('/api', (req, res) => {
     })
 })
 
-const users = []
+const users = {}
 app.get('/users', (req, res) => {
     res.json(users)
 })
 app.post('/api/login', async (req, res, next) => {
-    const user = users.find(user => user.email == req.body.email)
+    const user = users[req.body.email]
     if (user == null) {
         return res.status(400).send('Cannot find user')
     }
@@ -51,7 +51,7 @@ const verifyToken = (req, res, next) => {
 app.post('/api/post', verifyToken ,(req, res) => {
     jwt.verify(req.token, jwtSecretKey, (err, authData)=> {
         if(err) {
-            res.sendStatus(403)
+            res.status(403).send(err)
         } else {
             res.json({message: 'Posts success', authData})
         }
@@ -64,11 +64,36 @@ app.post('/api/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(req.body.password, salt)
         const user = {email: req.body.email, password: hashedPassword}
         console.log(user)
-        users.push(user)
+        users[user.email] = user
         res.sendStatus(201)
     } catch {
         res.sendStatus(500)
     }
+})
+
+app.delete('/api/register', verifyToken, async (req, res) => {
+    jwt.verify(req.token, jwtSecretKey, (err, authData)=> {
+        if (err) {
+            res.sendStatus(500)
+        } else {
+            console.log(authData)
+            const email = authData.user.email
+            const psw = authData.user.password
+            const user = users[email]
+            if (user == null) {
+                return res.status(400).send('Cannot find user')
+            } else {
+                if (user.password == psw) {
+                    users[user.email] = null
+                    res.json({success: true})
+                } else {
+                    res.sendStatus(500)
+                }
+            } 
+        }
+         
+    })
+    
 })
 
 app.listen(PORT, (req, res) => {
