@@ -58,6 +58,29 @@ describe('user can register and delete account', () => {
             done(err)
         })
     })
+
+    it('Bob cannot delete account with wrong token', (done) => {
+        const email = 'bob@example.com'
+        const pwd = 'bob123'
+        const passwdhash = crypto.createHash('sha256').update(pwd).digest('base64')
+        axios.post(retisterUrl, { email: email, password: passwdhash})
+        .then(res => {
+            const loginUrl = host + ':' + port + '/api/login'
+            return axios.post(loginUrl, { email: email, password: passwdhash })
+        })
+        .then(res => {
+            return "wrong token"
+        })
+        .then(token => {
+            const headers = {
+                Authorization: `Bearer ${token}`
+            }
+            return axios.delete(retisterUrl, {headers: headers})
+        })
+        .catch(err => {
+            done()
+        })
+    })
 })
 
 describe('login', () => {
