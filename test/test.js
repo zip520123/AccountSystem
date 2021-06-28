@@ -177,3 +177,16 @@ describe('Post message', ()=> {
         })
     })
 })
+
+describe('db', () => {
+    const postMsgUrl = host + ':' + port + '/api/post'
+    it('User can load to post', (done) => {
+        axios.get(postMsgUrl, {
+
+        }).then(res => {
+            done()
+        }).catch(err =>{
+            done(new Error('get post api fail'))
+        })
+    })
+})
