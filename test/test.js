@@ -178,9 +178,9 @@ describe('Post message', ()=> {
     })
 })
 
-describe('db', () => {
+describe('Get posts', () => {
     const postMsgUrl = host + ':' + port + '/api/post'
-    it('User can load to post', (done) => {
+    it('User can load the posts', (done) => {
         axios.get(postMsgUrl, {
 
         }).then(res => {
