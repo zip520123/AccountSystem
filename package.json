@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "devStart": "nodemon server.js",
+    "db": "mongod --config /usr/local/etc/mongod.conf",
     "test": "mocha"
   },
   "author": "",

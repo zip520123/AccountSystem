@@ -4,7 +4,28 @@ const jwtSecretKey = "secretKey"
 const app = express()
 const PORT = process.env.PORT || 3000;
 const bcrypt = require('bcrypt')
+
+// mongoDB
+const mongoose = require('mongoose')
+// mongoose.Promise = global.Promise 
+const { Schema } = mongoose
+
+mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true})
+
+const db = mongoose.connection
+db.on('error', (err) => console.error('connection error', err))
+const blogSchema = new Schema({
+    title:  String,
+    author: String,
+    body:   String,
+    date: { type: Date, default: Date.now }
+});
+
+const Blog = mongoose.model('Blog', blogSchema);
+// mongoDB end
+
 app.use(express.json())
+
 app.get('/api', (req, res) => {
     res.json({
         message: "Hey there! welcome to this API service"
@@ -48,12 +69,37 @@ const verifyToken = (req, res, next) => {
     }
 }
 
-app.post('/api/post', verifyToken ,(req, res) => {
-    jwt.verify(req.token, jwtSecretKey, (err, authData)=> {
+//Post
+app.post('/api/post', verifyToken , (req, res) => {
+    jwt.verify(req.token, jwtSecretKey, (err, authData) => {
         if(err) {
             res.status(403).send(err)
         } else {
-            res.json({message: 'Posts success', authData})
+            if (req.body.title == null || req.body.msg == null) {
+                res.status(400).send('title == null || msg == null')
+            }
+            const blog = new Blog({
+                title:  req.body.title,
+                author: authData.user.name,
+                body:   req.body.msg                    
+            })
+            blog.save()
+                .then(item => {
+                    res.json({message: 'Posts success', authData})
+                })
+                .catch(err =>{
+                    res.status(400).send(err)
+                })
+        }
+    })
+})
+
+app.get('/api/post', (req, res) => {
+    Blog.find( (err, blogs) => {
+        if (err) {
+            res.status(400).send(err)
+        } else {
+            res.json(blogs)
         }
     })
 })

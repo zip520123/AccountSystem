@@ -152,7 +152,7 @@ describe('Post message', ()=> {
         const headers = {
             Authorization: `Bearer ${token}`
         }
-        axios.post(postMsgUrl, {msg: "hello"}, { headers: headers } )
+        axios.post(postMsgUrl, {title: "I'm title", msg: "hello"}, { headers: headers } )
         .then(res => {
             assert.notStrictEqual(res.data.token, null, "token must not be nil")
             done()
