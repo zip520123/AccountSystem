@@ -22,6 +22,18 @@ const blogSchema = new Schema({
 });
 
 const Blog = mongoose.model('Blog', blogSchema);
+
+const UserSchema = new Schema({
+    name: String,
+    email: {
+        type: String,
+        required: true, 
+        trim: true, 
+        unique: true,
+    },
+    password: String
+})
+const User = mongoose.model('User', UserSchema)
 // mongoDB end
 
 app.use(express.json())
@@ -32,12 +44,21 @@ app.get('/api', (req, res) => {
     })
 })
 
-const users = {}
+
 app.get('/users', (req, res) => {
-    res.json(users)
+    User.find((err, users)=> {
+        if (err) {
+            res.status(403).send(err)
+        } else {
+            res.json(users)
+        }
+    })
+    
 })
 app.post('/api/login', async (req, res, next) => {
-    const user = users[req.body.email]
+    
+    const user = await User.findOne({email: req.body.email}).exec()
+    
     if (user == null) {
         return res.status(400).send('Cannot find user')
     }
@@ -108,10 +129,15 @@ app.post('/api/register', async (req, res) => {
     try {
         const salt = await bcrypt.genSalt()
         const hashedPassword = await bcrypt.hash(req.body.password, salt)
-        const user = {email: req.body.email, password: hashedPassword}
-        console.log(user)
-        users[user.email] = user
-        res.sendStatus(201)
+        const user = new User({name: req.body.email, email: req.body.email, password: hashedPassword}) 
+        user.save()
+            .then(item => {
+                res.sendStatus(201)
+            })
+            .catch(err => {
+                res.status(400).send(err)
+            })
+
     } catch {
         res.sendStatus(500)
     }
@@ -122,20 +148,22 @@ app.delete('/api/register', verifyToken, async (req, res) => {
         if (err) {
             res.sendStatus(500)
         } else {
-            console.log(authData)
             const email = authData.user.email
             const psw = authData.user.password
-            const user = users[email]
-            if (user == null) {
-                return res.status(400).send('Cannot find user')
-            } else {
-                if (user.password == psw) {
-                    users[user.email] = null
-                    res.json({success: true})
+
+            User.findOne({email: email}).exec().then(user => {
+                if (user == null) {
+                    return res.status(400).send('Cannot find user')
                 } else {
-                    res.sendStatus(500)
-                }
-            } 
+                    if (user.password == psw) {
+                        User.deleteOne({email: email}).then(() =>{
+                            res.json({success: true})
+                        })
+                    } else {
+                        res.sendStatus(500)
+                    }
+                } 
+            })
         }
          
     })
